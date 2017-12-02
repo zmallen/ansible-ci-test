@@ -1,0 +1,49 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Install packages
+      apt:
+        name: "{{ item }}"
+        update_cache: true
+        state: present
+      with_items:
+        - apache2
+        - git
+        - zsh
+        - redis-server
+
+    - name: Copy nyancat files
+      get_url:
+        url: https://raw.githubusercontent.com/jimpo/nyancat/master/{{ item }}
+        dest: /var/www/html
+      with_items:
+        - index.html
+        - nyan.js
+        - nyancat.mp3
+        - nyancat.gif
+
+    - name: Copy over memes.html
+      copy:
+        src: ./memes.html
+        dest: /var/www/html/memes.html
+        owner: www-data
+        group: www-data
+
+    - name: Copy over httpd.conf file
+      copy:
+        src: ./apache2.conf
+        dest: /etc/apache2/apache2.conf
+        owner: root
+        group: root
+    
+    - name: Add techy user
+      user:
+        name: techy
+        shell: /bin/zsh
+        groups: sudo
+    
+    - name: Reconfigure redis
+      copy:
+        src: ./redis.conf
+        dest: /etc/redis/redis.conf
